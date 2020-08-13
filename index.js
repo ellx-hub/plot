@@ -2,12 +2,12 @@ import * as vega from 'vega';
 import * as lite from 'vega-lite';
 import { default as embed } from 'vega-embed';
 
-function config(data = [], mapping = () => {}) {
+function config(data = [], mark = 'point', transformers = []) {
   const values = data.map(([x, y]) => ({ x, y }));
   
   const withDefaults = {
     data: { values },
-    mark: typeof mapping === 'string' ? mapping : 'point',
+    mark,
     width: 400,
     height: 200,
     encoding: {
@@ -21,10 +21,8 @@ function config(data = [], mapping = () => {}) {
       }
     },
   };
-
-  return typeof mapping === 'function'
-  	? mapping(withDefaults)
-  	: withDefaults;
+  
+  return transformers.reduce((conf, fn) => fn(conf), withDefaults);
 }
 
 class Plot {
@@ -33,10 +31,10 @@ class Plot {
     this.update(props);
   }
   
-  update({ data, mapping = 'point' }) {
+  update({ data, mapping = 'point', transformers }) {
     this.spec = {
       $schema: 'https://vega.github.io/schema/vega-lite/v4.json',
-      ...config(data, mapping),
+      ...config(data, mapping, transformers),
     };
     
     embed(this.chart, this.spec);
@@ -47,4 +45,29 @@ class Plot {
   }
 }
 
-export const plot = props => ({ ...props, __EllxMeta__: { component: Plot } });
+export const plot = props => ({
+  ...props,
+  __EllxMeta__: {
+    component: Plot,
+    operator: {
+      binary: {
+        '+': (l, r) => {
+          l.transformers = [...(l.transformers || []), r];
+          
+          return l;
+        }
+      }
+    }
+  }
+});
+
+export const label = (x, y) => (config) => { 
+  if (x) {
+    config.encoding.x.title = x;
+  }
+  if (y) {
+    config.encoding.y.title = y;
+  }
+  
+  return config;
+};

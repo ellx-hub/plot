@@ -15,9 +15,9 @@ We should consider operator overloading for adding layers ggplot style where `+`
 { data = range(50).map(() => [Math.random(), Math.random()]) }
 ```
 
-<div class="text-xs font-mono">
+<div class="text-xs font-mono py-8 bg-gray-100 px-4">
 
-Random data points:
+##### Random data points
 { data = range(50).map(() => [Math.random(), Math.random()]) }
   
 </div>
@@ -60,4 +60,28 @@ Random data points:
 
 ```
 { plot({ data, mapping: 'circle' }) }
+```
+
+#### Square
+
+{ plot({ data, mapping: 'square' }) }
+
+```
+{ plot({ data, mapping: 'square' }) }
+```
+
+#### Tick
+
+{ plot({ data, mapping: 'tick' }) }
+
+```
+{ plot({ data, mapping: 'tick' }) }
+```
+
+#### Composition
+
+{ p = plot({ data, mapping: 'tick' }) + label('rnddd', 'drnnn') }
+
+```
+{ p = plot({ data, mapping: 'tick' }) + label('rnddd', 'drnnn') }
 ```
