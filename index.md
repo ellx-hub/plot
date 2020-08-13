@@ -80,8 +80,8 @@ We should consider operator overloading for adding layers ggplot style where `+`
 
 #### Composition
 
-{ p = plot({ data, mapping: 'tick' }) + label('rnddd', 'drnnn') }
+{ plot({ data, mapping: 'tick' }) + label('rnddd', 'drnnn') }
 
 ```
-{ p = plot({ data, mapping: 'tick' }) + label('rnddd', 'drnnn') }
+{ plot({ data, mapping: 'tick' }) + label('rnddd', 'drnnn') }
 ```
