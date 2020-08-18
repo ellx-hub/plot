@@ -2,6 +2,7 @@ import * as vega from 'vega';
 import * as lite from 'vega-lite';
 import { default as embed } from 'vega-embed';
 export * from '/helpers.js';
+export { default as select } from '~ellx-hub/lib/components/Select/index.js';
 
 function config(data = [], mapping = []) {
   const values = data.map(([x, y]) => ({ x, y }));
@@ -99,8 +100,6 @@ export const plot = props => ({
   }
 });
 
-export const myTransformer = () => (config) => { 
-  config.encoding.color = {"bin": true, "field": "x"};
-  
-  return config;
-};
+export const markOptions = [
+  "area", "bar", "circle", "line", "point", "rect", "rule", "square", "text", "tick"
+];

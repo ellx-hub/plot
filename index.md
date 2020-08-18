@@ -61,80 +61,60 @@ In future we consider something akin to [pandas.DataFrame](https://pandas.pydata
 
 </small>
 
-`Mapping` 
+Mapping maybe a string name of a mark type. This is useful for fast prototyping. Try different marks on the same data set with this select:
+  
+{ mapping = select({ options: ['--', ...markOptions]}) }
 
+{ plot({ data, mapping }) }
+
+Another more powerful option is to pass `mapping` an array of transformer functions:
+  
 ```
-{ data = range(50).map(() => [Math.random(), Math.random()]) }
+{ plot({ data, mapping: [label('my x', 'my y'), color('red')]})}
 ```
+  
+{ plot({ data, mapping: [label('my x', 'my y'), color('red')]})}
 
-#### Line
+This is where power of Ellx' operator overloading comes into play. Passing all these transformer functions will soon become unwieldy and unreadable so Plot uses `/` operator to add a function to the mapping list.
 
-{ plot({ data, mapping: 'line' }) }
-
+So this:
 ```
-{ plot({ data, mapping: 'line' }) }
-```
-
-#### Area
-
-{ plot({ data, mapping: 'area' }) }
-
-```
-{ plot({ data, mapping: 'area' }) }
-```
-
-#### Bar
-
-{ plot({ data, mapping: 'bar' }) }
-
-```
-{ plot({ data, mapping: 'bar' }) }
+{ plot({ data, mapping: [label('my x', 'my y'), color('red')]}) }
 ```
 
-#### Circle
-
-{ plot({ data, mapping: 'circle' }) }
-
+equals this:
 ```
-{ plot({ data, mapping: 'circle' }) }
+{ plot({ data }) / label('my x', 'my y') / color('red') }
 ```
-
-#### Square
-
-{ plot({ data, mapping: 'square' }) }
-
+  
+Signature of transformer function is trivial:
+  
 ```
-{ plot({ data, mapping: 'square' }) }
-```
-
-#### Tick
-
-{ plot({ data, mapping: 'tick' }) }
-
-```
-{ plot({ data, mapping: 'tick' }) }
-```
-
-#### Layering
-
-{
-plot({ data, mapping: 'line' }) + plot({ data, mapping: 'square'}) 
-}
-
-```
-{
-plot({ data, mapping: 'line' }) + plot({ data, mapping: 'square'}) 
-}
+const transformer = (value) => (config) => { 
+  config.someParameter.value = value;
+  
+  // config is a Vega-Lite config object
+  return config;
+};
 ```
 
 #### Composition
-
-{
-plot({ data, mapping: 'line' }) / label('line-x') / color('green') + plot({ data, mapping: 'square' }) / label('x square', 'y square') / color('purple')
-}
+  
+Operator precedence is preserved so functional composition by `/` and plot layering can be easily combined:
 
 ```
 {
-plot({ data, mapping: 'line' }) / label('line-x') / color('green') + plot({ data, mapping: 'square' }) / label('x square', 'y square') / color('purple')
+plot({ data, mapping: 'line' })
+  / label('line-x')
+  / color('green') +
+plot()
+  / label('x square', 'y square') 
+  / color('purple')
 }
 ```
+  
+{
+plot({ data, mapping: 'line' }) / label('line-x') / color('green') + plot() / label('x square', 'y square') / color('purple')
+}
+  
+Note that any additional plot layers will reuse first layer's data.
