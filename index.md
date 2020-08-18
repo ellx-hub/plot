@@ -1,33 +1,70 @@
 # Simple Ellx plot
 
-Here's plot API:
+This is a simple plotting library built on top of [Vega-Lite](https://vega.github.io/vega-lite/) inspired by [ggplot's API](https://ggplot2.tidyverse.org/reference/ggplot.html).
+
+The API itself:
 ```
-plot({ data, mapping })
-```
-
-For initial take we accept 2d array for `data` and Vega's own point types for `mapping` or a transformer function which accepts Vega lite default config and returns desired config.
-
-It is through this transformer function that we can provide versatile and simple API for different plotting options (like aggregation functions).
-
-We should consider operator overloading for adding layers ggplot style where `+` would naturally perform Vega lite's view composition (see [https://vega.github.io/vega-lite/docs/facet.html](https://vega.github.io/vega-lite/docs/facet.html)).
-
-```
-{ data = range(50).map(() => [Math.random(), Math.random()]) }
+plot({ data, mapping }) / transformerFn() + plot({ mapping })
 ```
 
-<div class="text-xs font-mono py-8 bg-gray-100 px-4">
+This simple API allows for quick and simple way to plot 2d data like this:
 
-##### Random data points
-{ data = range(50).map(() => [Math.random(), Math.random()]) }
+```
+{ plot({ data }) }
+```
+
+{ plot({ data }) }
+
+Layer plots by adding them together ggplot style:
+
+```
+{ plot({ data }) + plot({ mapping: 'line' }) }
+```
+
+{ plot({ data }) + plot({ mapping: 'line' }) }
+
+And modify plots by using simple functional composition:
+
+```
+{
+plot({ data, mapping: 'line' }) / label('Extraordinary green line') / color('green') 
+}
+```
+
+{
+plot({ data, mapping: 'circle' }) / label('My custom X') / color('green') 
+}
+
+## Data
+
+<small>
+
+`Array<Tuple>`
   
-</div>
+</small>
 
-#### Default plot
+For simplicity sake ATM plot accepts 2d array for `data` parameter:
 
-{ plot({ data }) }
 
 ```
-{ plot({ data }) }
+[[0, 1], [1, 3], [5, 4]]
+```
+
+In future we consider something akin to [pandas.DataFrame](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html) but it may prove to be too similar to d3's data transforms so we might as well stick to simple functional approach expecting user to process their data before passing it to plot.
+
+## Mapping
+
+<small>
+
+`string: area|bar|circle|line|point|rect|rule|square|text|tick`
+`Array<TransformerFn>`
+
+</small>
+
+`Mapping` 
+
+```
+{ data = range(50).map(() => [Math.random(), Math.random()]) }
 ```
 
 #### Line
@@ -78,14 +115,26 @@ We should consider operator overloading for adding layers ggplot style where `+`
 { plot({ data, mapping: 'tick' }) }
 ```
 
-#### Composition
+#### Layering
 
 {
-		plot({ data, mapping: 'line' }) * label('line-x') + plot({ mapping: 'square' }) * label('x square', 'y square') *  aggregate('mean', 'y')
+plot({ data, mapping: 'line' }) + plot({ data, mapping: 'square'}) 
 }
 
 ```
-plot({ data, mapping: 'square' })
-* label('AA', 'BB') * color('x') +
-plot({ mapping: 'line' }) * label('CC', 'DD')
+{
+plot({ data, mapping: 'line' }) + plot({ data, mapping: 'square'}) 
+}
+```
+
+#### Composition
+
+{
+plot({ data, mapping: 'line' }) / label('line-x') / color('green') + plot({ data, mapping: 'square' }) / label('x square', 'y square') / color('purple')
+}
+
+```
+{
+plot({ data, mapping: 'line' }) / label('line-x') / color('green') + plot({ data, mapping: 'square' }) / label('x square', 'y square') / color('purple')
+}
 ```

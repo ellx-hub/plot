@@ -1,7 +1,7 @@
 import * as vega from 'vega';
 import * as lite from 'vega-lite';
 import { default as embed } from 'vega-embed';
-export { label, aggregate } from '/helpers.js';
+export * from '/helpers.js';
 
 function config(data = [], mapping = []) {
   const values = data.map(([x, y]) => ({ x, y }));
@@ -60,8 +60,6 @@ class Plot {
     	.map(({ data, mapping }) => config(data, mapping));
     
   	const composed = compose(...configs);
-    
-    console.log(composed);
 
     this.spec = {
       $schema: 'https://vega.github.io/schema/vega-lite/v4.json',
@@ -86,7 +84,7 @@ export const plot = props => ({
     component: Plot,
     operator: {
       binary: {
-        '*': (l, r) => {
+        '/': (l, r) => {
           l.mapping = [...mappingToArray(l.mapping), r];
           
           return l;
@@ -100,3 +98,9 @@ export const plot = props => ({
     }
   }
 });
+
+export const myTransformer = () => (config) => { 
+  config.encoding.color = {"bin": true, "field": "x"};
+  
+  return config;
+};
