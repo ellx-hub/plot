@@ -1,13 +1,14 @@
 import * as vega from 'vega';
 import * as lite from 'vega-lite';
 import { default as embed } from 'vega-embed';
+export { label, aggregate } from '/helpers.js';
 
-function config(data = [], mark = 'point', transformers = []) {
+function config(data = [], mapping = []) {
   const values = data.map(([x, y]) => ({ x, y }));
   
   const withDefaults = {
     data: { values },
-    mark,
+    mark: 'point',
     width: 400,
     height: 200,
     encoding: {
@@ -22,7 +23,30 @@ function config(data = [], mark = 'point', transformers = []) {
     },
   };
   
-  return transformers.reduce((conf, fn) => fn(conf), withDefaults);
+  return mappingToArray(mapping).reduce((conf, fn) => {
+    if (typeof fn === 'string') {
+			return {
+        ...conf,
+        mark: fn,
+      };
+    }
+    return fn(conf);
+  }, withDefaults);
+}
+
+function compose(first, ...layers) {
+  return {
+    data: first.data,
+    width: first.width,
+    height: first.height,
+    layer: [
+      first,
+      ...layers,
+    ].map(l => ({
+      encoding: l.encoding,
+      mark: l.mark,
+    }))
+  }
 }
 
 class Plot {
@@ -31,10 +55,17 @@ class Plot {
     this.update(props);
   }
   
-  update({ data, mapping = 'point', transformers }) {
+  update({ data, mapping, layers = [] }) {
+    const configs = [{ data, mapping }, ...layers]
+    	.map(({ data, mapping }) => config(data, mapping));
+    
+  	const composed = compose(...configs);
+    
+    console.log(composed);
+
     this.spec = {
       $schema: 'https://vega.github.io/schema/vega-lite/v4.json',
-      ...config(data, mapping, transformers),
+      ...composed,
     };
     
     embed(this.chart, this.spec);
@@ -45,29 +76,27 @@ class Plot {
   }
 }
 
+const mappingToArray = m => m && Array.isArray(m)
+  ? m
+  : [m].filter(Boolean);
+
 export const plot = props => ({
   ...props,
   __EllxMeta__: {
     component: Plot,
     operator: {
       binary: {
-        '+': (l, r) => {
-          l.transformers = [...(l.transformers || []), r];
+        '*': (l, r) => {
+          l.mapping = [...mappingToArray(l.mapping), r];
           
           return l;
-        }
+        },
+        '+': (l, r) => {
+        	l.layers = [...(l.layers || []), r];
+          
+          return l;
+        },
       }
     }
   }
 });
-
-export const label = (x, y) => (config) => { 
-  if (x) {
-    config.encoding.x.title = x;
-  }
-  if (y) {
-    config.encoding.y.title = y;
-  }
-  
-  return config;
-};

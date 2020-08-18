@@ -3,7 +3,7 @@ name: Sync repo with test.ellx.io
 on:
   push:
     branches:
-      - master
+      - test
 
 jobs:
   sync:
