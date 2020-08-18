@@ -44,6 +44,7 @@ function compose(first, ...layers) {
       first,
       ...layers,
     ].map(l => ({
+      data: l.data || first.data,
       encoding: l.encoding,
       mark: l.mark,
     }))

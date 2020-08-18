@@ -114,7 +114,22 @@ plot()
 ```
   
 {
-plot({ data, mapping: 'line' }) / label('line-x') / color('green') + plot() / label('x square', 'y square') / color('purple')
+plot({ data, mapping: 'line' })
+  / label('line-x')
+  / color('green') +
+plot()
+  / label('x square', 'y square') 
+  / color('purple')
 }
   
-Note that any additional plot layers will reuse first layer's data.
+Note that any additional plot layers will reuse first layer's data if it wasn't passed.
+
+```
+{
+plot({ data, mapping: 'line' }) + plot({ data: otherData })
+}
+```
+
+{
+plot({ data, mapping: 'line' }) + plot({ data: otherData })
+}

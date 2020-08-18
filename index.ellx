@@ -1,11 +1,17 @@
 version: 1.1
 nodes:
   data = range(50).map(() => [Math.random(), Math.random()])
+  otherData = range(50).map(() => [Math.random(), Math.random()])
 layout:
 [
   [
     {
       "node": "data"
+    }
+  ],,
+  [
+    {
+      "node": "otherData"
     }
   ]
 ]
