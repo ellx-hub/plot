@@ -32,7 +32,7 @@ plot({ data, mapping: 'line' }) / label('Extraordinary green line') / color('gre
 ```
 
 {
-plot({ data, mapping: 'circle' }) / label('My custom X') / color('green') 
+plot({ data, mapping: 'line' }) / label('Extraordinary green line') / color('green') 
 }
 
 ## Data
@@ -108,7 +108,7 @@ plot({ data, mapping: 'line' })
   / label('line-x')
   / color('green') +
 plot()
-  / label('x square', 'y square') 
+  / label('x circle', 'y circle') 
   / color('purple')
 }
 ```
@@ -118,7 +118,7 @@ plot({ data, mapping: 'line' })
   / label('line-x')
   / color('green') +
 plot()
-  / label('x square', 'y square') 
+  / label('x circle', 'y circle') 
   / color('purple')
 }
   
@@ -126,10 +126,10 @@ Note that any additional plot layers will reuse first layer's data if it wasn't 
 
 ```
 {
-plot({ data, mapping: 'line' }) + plot({ data: otherData })
+plot({ data, mapping: 'line' }) + plot({ data: otherData }) / color('purple')
 }
 ```
 
 {
-plot({ data, mapping: 'line' }) + plot({ data: otherData })
+plot({ data, mapping: 'line' }) + plot({ data: otherData }) / color('purple')
 }

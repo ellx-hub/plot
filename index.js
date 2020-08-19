@@ -35,16 +35,20 @@ function config(data = [], mapping = []) {
   }, withDefaults);
 }
 
+const useData = (i, first, layer) => layer.data.values.length > 0 && i !== 0
+  ? layer.data
+  : first.data;
+
 function compose(first, ...layers) {
   return {
-    data: first.data,
     width: first.width,
     height: first.height,
     layer: [
       first,
       ...layers,
-    ].map(l => ({
-      data: l.data || first.data,
+    ].map((l, i) => ({
+      data: useData(i, first, l),
+      test: console.log(i, l.data || first.data),
       encoding: l.encoding,
       mark: l.mark,
     }))
