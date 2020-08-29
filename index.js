@@ -1,107 +1,80 @@
 import * as vega from 'vega';
-import * as lite from 'vega-lite';
-import { default as embed } from 'vega-embed';
-export * from '/helpers.js';
-export { default as select } from '~ellx-hub/lib/components/Select/index.js';
+import * as vegaLite from 'vega-lite';
+import * as vlApi from 'vega-lite-api';
+import * as vegaTooltip from 'vega-tooltip';
+import eq from 'fast-deep-equal';
 
-function config(data = [], mapping = []) {
-  const values = data.map(([x, y]) => ({ x, y }));
-  
-  const withDefaults = {
-    data: { values },
-    mark: 'point',
-    width: 400,
-    height: 200,
-    encoding: {
-      x: {
-        field: 'x',
-        type: 'quantitative',
-      },
-      y: {
-        field: 'y',
-        type: 'quantitative',
-      }
-    },
-  };
-  
-  return mappingToArray(mapping).reduce((conf, fn) => {
-    if (typeof fn === 'string') {
-			return {
-        ...conf,
-        mark: fn,
-      };
-    }
-    return fn(conf);
-  }, withDefaults);
-}
+const options = {
+  config: {
+    // Vega-Lite default configuration
+  },
+  init: (view) => {
+    // initialize tooltip handler
+    view.tooltip(new vegaTooltip.Handler().call);
+  },
+  view: {
+    // view constructor options
+    renderer: "canvas",
+  },
+};
 
-const useData = (i, first, layer) => layer.data.values.length > 0 && i !== 0
-  ? layer.data
-  : first.data;
+// register vega and vega-lite with the API
+vlApi.register(vega, vegaLite, options);
 
-function compose(first, ...layers) {
-  return {
-    width: first.width,
-    height: first.height,
-    layer: [
-      first,
-      ...layers,
-    ].map((l, i) => ({
-      data: useData(i, first, l),
-      test: console.log(i, l.data || first.data),
-      encoding: l.encoding,
-      mark: l.mark,
-    }))
-  }
-}
+export const vlDefault = vlApi.markPoint({filled: true})
+	.encode(
+    vlApi.x().fieldQ('0'),
+    vlApi.y().fieldQ('1'),
+  )
+	.width(400)
+  .height(200);
 
 class Plot {
   constructor(props) {
-    this.chart = document.createElement('div');
     this.update(props);
   }
   
-  update({ data, mapping, layers = [] }) {
-    const configs = [{ data, mapping }, ...layers]
-    	.map(({ data, mapping }) => config(data, mapping));
+  update({ vl }) {
+    this.vl = vl;
+    const { data, ...spec } = vl.toJSON();
     
-  	const composed = compose(...configs);
+    if (this.canvas) {
+      const view = this.canvas.value;
+      if (!view) {
+        console.error('Vega Lite view is missing on the canvas node');
+        return;
+      }
 
-    this.spec = {
-      $schema: 'https://vega.github.io/schema/vega-lite/v4.json',
-      ...composed,
-    };
-    
-    embed(this.chart, this.spec);
+      if (!eq(spec, this.spec)) {
+        view.finalize();
+        this.render(this.canvas.parentNode);
+        
+        this.canvas.parentNode.removeChild(this.canvas);
+        this.canvas = null;
+      }
+      else {
+        console.log('LIGHT UODATE');
+        view.data('source', data.values).run();
+      }
+    }
+    this.spec = spec;    
   }
   
-  render(node) {
-    node.appendChild(this.chart);
+  async render(node) {
+    this.canvas = await this.vl.render();
+    node.appendChild(this.canvas);
+  }
+  
+  dispose() {
+    const view = this.canvas && this.canvas.value;
+    if (view) view.finalize();
   }
 }
 
-const mappingToArray = m => m && Array.isArray(m)
-  ? m
-  : [m].filter(Boolean);
-
-export const plot = props => ({
-  ...props,
+export const plot = (values, mapping = i => i) => ({
+  vl: mapping(vlDefault.data({ name: 'source', values })),
   __EllxMeta__: {
-    component: Plot,
-    operator: {
-      binary: {
-        '/': (l, r) => {
-          l.mapping = [...mappingToArray(l.mapping), r];
-          
-          return l;
-        },
-        '+': (l, r) => {
-        	l.layers = [...(l.layers || []), r];
-          
-          return l;
-        },
-      }
-    }
+    component: Plot
   }
 });
 

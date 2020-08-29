@@ -2,6 +2,9 @@ version: 1.1
 nodes:
   data = range(50).map(() => [Math.random(), Math.random()])
   otherData = range(50).map(() => [Math.random(), Math.random()])
+  $1 = vlDefault.toJSON()
+  $3 = vlDefault.data({ values: data }).toJSON()
+  $4 = plot(data, vl => vl.markLine({ point: true }))
 layout:
 [
   [
@@ -12,6 +15,27 @@ layout:
   [
     {
       "node": "otherData"
+    }
+  ],,,
+  [,,
+    {
+      "node": "$1",
+      "expansion": {
+        "vertical": true,
+        "labelsLeft": true,
+        "height": 4,
+        "width": 1
+      }
+    }
+  ],,,,,
+  [,
+    {
+      "node": "$3"
+    }
+  ],,,
+  [,
+    {
+      "node": "$4"
     }
   ]
 ]
