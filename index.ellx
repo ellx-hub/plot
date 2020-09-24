@@ -1,41 +1,71 @@
 version: 1.1
 nodes:
-  data = range(50).map(() => [Math.random(), Math.random()])
-  otherData = range(50).map(() => [Math.random(), Math.random()])
-  $1 = vlDefault.toJSON()
-  $3 = vlDefault.data({ values: data }).toJSON()
-  $4 = plot(data, vl => vl.markLine({ point: true }))
+  $4 = plot(data, vl => vl.markLine())
+  data = range(50).map(() => Math.random()).map(arg =>({arg, f: arg * arg}))
+  urlPrefix = 'https://cdn.jsdelivr.net/npm/vega-datasets@1/'
+  $7 = plot(weatherData, weather)
+  url = urlPrefix + 'data/seattle-weather.csv'
+  $13 = weatherData.length
+  weatherData = parseCsv(fetch(url).text())
 layout:
-[
-  [
+[,
+  [,,,,,,,
     {
-      "node": "data"
-    }
-  ],,
-  [
-    {
-      "node": "otherData"
-    }
-  ],,,
-  [,,
-    {
-      "node": "$1",
+      "node": "$4",
       "expansion": {
         "vertical": true,
         "labelsLeft": true,
-        "height": 4,
-        "width": 1
+        "height": 13,
+        "width": 4
       }
     }
-  ],,,,,
+  ],
   [,
     {
-      "node": "$3"
+      "node": "data",
+      "expansion": {
+        "vertical": true,
+        "secondary": true,
+        "labelsTop": true,
+        "height": 10,
+        "width": 2
+      }
     }
-  ],,,
+  ],,,,,,,,,,,,,,
   [,
     {
-      "node": "$4"
+      "node": "urlPrefix"
+    },,,,,,,
+    {
+      "node": "$7",
+      "expansion": {
+        "vertical": true,
+        "labelsLeft": true,
+        "height": 18,
+        "width": 8
+      }
+    }
+  ],
+  [,
+    {
+      "node": "url"
+    }
+  ],
+  [,
+    {
+      "node": "$13"
+    }
+  ],,
+  [,
+    {
+      "node": "weatherData",
+      "expansion": {
+        "vertical": true,
+        "secondary": true,
+        "labelsTop": true,
+        "height": 13,
+        "width": 6
+      }
     }
   ]
 ]

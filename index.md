@@ -1,135 +1,68 @@
-# Simple Ellx plot
+# Ellx plot
 
-This is a simple plotting library built on top of [Vega-Lite](https://vega.github.io/vega-lite/) inspired by [ggplot's API](https://ggplot2.tidyverse.org/reference/ggplot.html).
+This is a simple Ellx wrapper around [Vega Lite Javascript API](https://github.com/vega/vega-lite-api/).
 
-The API itself:
-```
-plot({ data, mapping }) / transformerFn() + plot({ mapping })
-```
-
-This simple API allows for quick and simple way to plot 2d data like this:
+The wrapper layer is very thin and exposes the full power of [Vega Lite](https://vega.github.io/vega-lite/) under the hood.
 
 ```
-{ plot({ data }) }
+plot(data, mapping = (spec, vl) => spec)
 ```
-
-{ plot({ data }) }
-
-Layer plots by adding them together ggplot style:
-
+where `data`, following the Vega data model, is a vector of records,
+e.g.
 ```
-{ plot({ data }) + plot({ mapping: 'line' }) }
+data = range(50)
+  .map(() => Math.random())
+  .map(arg => ({ arg, f: arg * arg }))
 ```
-
-{ plot({ data }) + plot({ mapping: 'line' }) }
-
-And modify plots by using simple functional composition:
+The default schema is using the first two fields as `x` and `y`. This allows you to have a quick look at your quantitative data without worrying too much about the visualization schema.
 
 ```
-{
-plot({ data, mapping: 'line' }) / label('Extraordinary green line') / color('green') 
-}
+plot(data)
 ```
+{ defaultPlot = plot(data) }
 
-{
-plot({ data, mapping: 'line' }) / label('Extraordinary green line') / color('green') 
-}
+and the default generated Vega Lite schema is
 
-## Data
+{ pretty(defaultPlot.vl.toJSON()) }
 
-<small>
+Customize the schema by passing a `mapping` to `plot`: a transformer function, taking two parameters:
+- `spec`: Vega Lite API wrapped root spec
+- `vl`: Vega Lite API itself
 
-`Array<Tuple>`
-  
-</small>
-
-For simplicity sake ATM plot accepts 2d array for `data` parameter:
-
+It should return the transformed `spec`. Vega Lite API's dot-chainable functions simplify the task.
 
 ```
-[[0, 1], [1, 3], [5, 4]]
+plot(data, spec => spec.markLine())
 ```
 
-In future we consider something akin to [pandas.DataFrame](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html) but it may prove to be too similar to d3's data transforms so we might as well stick to simple functional approach expecting user to process their data before passing it to plot.
+{ plot(data, spec => spec.markLine()) }
 
-## Mapping
+[Vega Lite API reference](https://vega.github.io/vega-lite-api/api/)
 
-<small>
+### More examples
+Vega Lite allows for some really sophisticated visualizations. We define a custom mapping here that we call `weather`
 
-`string: area|bar|circle|line|point|rect|rule|square|text|tick`
-`Array<TransformerFn>`
-
-</small>
-
-Mapping maybe a string name of a mark type. This is useful for fast prototyping. Try different marks on the same data set with this select:
-  
-{ mapping = select({ options: ['--', ...markOptions]}) }
-
-{ plot({ data, mapping }) }
-
-Another more powerful option is to pass `mapping` an array of transformer functions:
-  
 ```
-{ plot({ data, mapping: [label('my x', 'my y'), color('red')]})}
-```
-  
-{ plot({ data, mapping: [label('my x', 'my y'), color('red')]})}
-
-This is where power of Ellx' operator overloading comes into play. Passing all these transformer functions will soon become unwieldy and unreadable so Plot uses `/` operator to add a function to the mapping list.
-
-So this:
-```
-{ plot({ data, mapping: [label('my x', 'my y'), color('red')]}) }
-```
-
-equals this:
-```
-{ plot({ data }) / label('my x', 'my y') / color('red') }
-```
-  
-Signature of transformer function is trivial:
-  
-```
-const transformer = (value) => (config) => { 
-  config.someParameter.value = value;
-  
-  // config is a Vega-Lite config object
-  return config;
+const colors = {
+  domain: ['sun', 'fog', 'drizzle', 'rain', 'snow'],
+  range: ['#e7ba52', '#a7a7a7', '#aec7e8', '#1f77b4', '#9467bd']
 };
+
+export const weather = (root, vl) => root
+  .encode(
+    vl.color().fieldN('weather').scale(colors).title('Weather'),
+    vl.x().timeMD('date')
+      .axis({title: 'Date', format: '%b'}),
+    vl.y().fieldQ('temp_max')
+      .scale({domain: [-5, 40]})
+      .axis({title: 'Maximum Daily Temperature (°C)'})
+  )
+  .height(300)
+  .width(600);
 ```
 
-#### Composition
-  
-Operator precedence is preserved so functional composition by `/` and plot layering can be easily combined:
-
+Then we pass it to `plot`
 ```
-{
-plot({ data, mapping: 'line' })
-  / label('line-x')
-  / color('green') +
-plot()
-  / label('x circle', 'y circle') 
-  / color('purple')
-}
+plot(weatherData, weather)
 ```
-  
-{
-plot({ data, mapping: 'line' })
-  / label('line-x')
-  / color('green') +
-plot()
-  / label('x circle', 'y circle') 
-  / color('purple')
-}
-  
-Note that any additional plot layers will reuse first layer's data if it wasn't passed.
-
-```
-{
-plot({ data, mapping: 'line' }) + plot({ data: otherData }) / color('purple')
-}
-```
-
-{
-plot({ data, mapping: 'line' }) + plot({ data: otherData }) / color('purple')
-}
+{ plot(weatherData, weather) }

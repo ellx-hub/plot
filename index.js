@@ -1,7 +1,7 @@
-import * as vega from 'vega';
-import * as vegaLite from 'vega-lite';
-import * as vlApi from 'vega-lite-api';
-import * as vegaTooltip from 'vega-tooltip';
+import * as vega from 'vega@5.14';
+import * as vegaLite from 'vega-lite@4.14.1';
+import * as vlApi from 'vega-lite-api@0.11.0';
+import * as vegaTooltip from 'vega-tooltip@0.23.2';
 import eq from 'fast-deep-equal';
 
 const options = {
@@ -14,20 +14,12 @@ const options = {
   },
   view: {
     // view constructor options
-    renderer: "canvas",
+    renderer: 'canvas',
   },
 };
 
 // register vega and vega-lite with the API
 vlApi.register(vega, vegaLite, options);
-
-export const vlDefault = vlApi.markPoint({filled: true})
-	.encode(
-    vlApi.x().fieldQ('0'),
-    vlApi.y().fieldQ('1'),
-  )
-	.width(400)
-  .height(200);
 
 class Plot {
   constructor(props) {
@@ -38,46 +30,68 @@ class Plot {
     this.vl = vl;
     const { data, ...spec } = vl.toJSON();
     
-    if (this.canvas) {
-      const view = this.canvas.value;
+    if (this.chart) {
+      const view = this.chart.value;  // Vega Lite view object (https://vega.github.io/vega-lite/docs/spec.html)
       if (!view) {
-        console.error('Vega Lite view is missing on the canvas node');
+        console.error('Vega Lite view is missing on the chart node');
         return;
       }
 
       if (!eq(spec, this.spec)) {
-        view.finalize();
-        this.render(this.canvas.parentNode);
-        
-        this.canvas.parentNode.removeChild(this.canvas);
-        this.canvas = null;
+        // Spec has changed, need to re-render
+        const container = this.chart.parentNode;
+        container.removeChild(this.chart);
+
+        view.finalize();        
+        this.chart = null;
+
+        this.render(container);
       }
       else {
-        console.log('LIGHT UODATE');
+        // A "streaming" update, preserving the view
         view.data('source', data.values).run();
       }
     }
-    this.spec = spec;    
+    this.spec = spec;
   }
   
   async render(node) {
-    this.canvas = await this.vl.render();
-    node.appendChild(this.canvas);
+    const promise = this.rendering = this.vl.render();
+    const chart = await promise;
+    if (promise === this.rendering) {
+      node.appendChild(this.chart = chart);
+    }
   }
   
   dispose() {
-    const view = this.canvas && this.canvas.value;
-    if (view) view.finalize();
+    this.rendering = null;
+    const view = this.chart && this.chart.value;
+    if (view && 'function' === typeof view.finalize) view.finalize();
   }
 }
 
-export const plot = (values, mapping = i => i) => ({
-  vl: mapping(vlDefault.data({ name: 'source', values })),
-  __EllxMeta__: {
-    component: Plot
-  }
-});
+export const vlDefault = (root, vl) => {
+  const { data: { values } } = root.toJSON();  
+  const keys = Object.keys(values[0]);
 
-export const markOptions = [
-  "area", "bar", "circle", "line", "point", "rect", "rule", "square", "text", "tick"
-];
+  return root.mark({ type: 'point', filled: true })
+    .encode(
+      vl.x().fieldQ(keys[0]),
+      vl.y().fieldQ(keys[1]),
+    )
+    .width(400)
+    .height(200)
+}
+
+export const plot = (values, mapping = r => r) => {
+  const root = vlDefault(vlApi.data(values), vlApi);
+  return {
+    vl: mapping(root, vlApi),
+    __EllxMeta__: { component: Plot }
+  };
+}
+
+export { vlApi }
+export { default as pretty } from '~ellx-hub/lib/components/Pretty/index.js';
+export { default as parseCsv } from '~ellx-hub/lib/utils/csv.js';
+export { weather } from './examples.js';
