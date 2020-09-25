@@ -25,11 +25,11 @@ class Plot {
   constructor(props) {
     this.update(props);
   }
-  
+
   update({ vl }) {
     this.vl = vl;
     const { data, ...spec } = vl.toJSON();
-    
+
     if (this.chart) {
       const view = this.chart.value;  // Vega Lite view object (https://vega.github.io/vega-lite/docs/spec.html)
       if (!view) {
@@ -42,7 +42,7 @@ class Plot {
         const container = this.chart.parentNode;
         container.removeChild(this.chart);
 
-        view.finalize();        
+        view.finalize();
         this.chart = null;
 
         this.render(container);
@@ -54,7 +54,7 @@ class Plot {
     }
     this.spec = spec;
   }
-  
+
   async render(node) {
     const promise = this.rendering = this.vl.render();
     const chart = await promise;
@@ -62,7 +62,7 @@ class Plot {
       node.appendChild(this.chart = chart);
     }
   }
-  
+
   dispose() {
     this.rendering = null;
     const view = this.chart && this.chart.value;
@@ -71,7 +71,7 @@ class Plot {
 }
 
 export const vlDefault = (root, vl) => {
-  const { data: { values } } = root.toJSON();  
+  const { data: { values } } = root.toJSON();
   const keys = Object.keys(values[0]);
 
   return root.mark({ type: 'point', filled: true })
@@ -84,7 +84,7 @@ export const vlDefault = (root, vl) => {
 }
 
 export const plot = (values, mapping = r => r) => {
-  const root = vlDefault(vlApi.data(values), vlApi);
+  const root = vlDefault(vlApi.data({ values, name: 'source' }), vlApi);
   return {
     vl: mapping(root, vlApi),
     __EllxMeta__: { component: Plot }
