@@ -49,7 +49,7 @@ class Plot {
       }
       else {
         // A "streaming" update, preserving the view
-        view.data('source_0', data.values).run();
+        view.data('source', data.values).run();
       }
     }
     this.spec = spec;
@@ -84,7 +84,7 @@ export const vlDefault = (root, vl) => {
 }
 
 export const plot = (values, mapping = r => r) => {
-  const root = vlDefault(vlApi.data(values), vlApi);
+  const root = vlDefault(vlApi.data({ values, name: 'source' }), vlApi);
   return {
     vl: mapping(root, vlApi),
     __EllxMeta__: { component: Plot }
