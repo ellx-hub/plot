@@ -63,6 +63,6 @@ export const weather = (root, vl) => root
 
 Then we pass it to `plot`
 ```
-plot(weatherData, weather)
+plot(weatherData, examples.weather)
 ```
-{ plot(weatherData, weather) }
+{ plot(weatherData, examples.weather) }

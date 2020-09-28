@@ -92,6 +92,3 @@ export const plot = (values, mapping = r => r) => {
 }
 
 export { vlApi }
-export { default as pretty } from '~ellx-hub/lib/components/Pretty/index.js';
-export { default as parseCsv } from '~ellx-hub/lib/utils/csv.js';
-export { weather } from './examples.js';

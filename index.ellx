@@ -1,9 +1,12 @@
 version: 1.1
 nodes:
   $4 = plot(data, vl => vl.markLine())
+  examples = require('./examples.js')
   data = range(50).map(() => Math.random()).map(arg =>({arg, f: arg * arg}))
+  parseCsv = examples.parseCsv
+  pretty = examples.pretty
   urlPrefix = 'https://cdn.jsdelivr.net/npm/vega-datasets@1/'
-  $7 = plot(weatherData, weather)
+  $7 = plot(weatherData, examples.weather)
   url = urlPrefix + 'data/seattle-weather.csv'
   $13 = weatherData.length
   weatherData = parseCsv(fetch(url).text())
@@ -18,6 +21,12 @@ layout:
         "height": 13,
         "width": 4
       }
+    },,,,
+    {
+      "value": "from examples"
+    },
+    {
+      "node": "examples"
     }
   ],
   [,
@@ -30,8 +39,22 @@ layout:
         "height": 10,
         "width": 2
       }
+    },,,,,,,,,,
+    {
+      "value": "parseCsv"
+    },
+    {
+      "node": "parseCsv"
     }
-  ],,,,,,,,,,,,,,
+  ],
+  [,,,,,,,,,,,
+    {
+      "value": "pretty"
+    },
+    {
+      "node": "pretty"
+    }
+  ],,,,,,,,,,,,,
   [,
     {
       "node": "urlPrefix"
@@ -50,7 +73,7 @@ layout:
     {
       "node": "url"
     }
-  ],
+  ],,
   [,
     {
       "node": "$13"
