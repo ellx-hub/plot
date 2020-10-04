@@ -21,6 +21,29 @@ const options = {
 // register vega and vega-lite with the API
 vlApi.register(vega, vegaLite, options);
 
+export const vlDefault = (root, vl) => {
+  const { data: { values } } = root.toJSON();
+  const keys = Object.keys(values[0]);
+
+  return root.mark({ type: 'point', filled: true })
+    .encode(
+      vl.x().fieldQ(keys[0]),
+      vl.y().fieldQ(keys[1]),
+    )
+    .width(400)
+    .height(200)
+}
+
+export const plot = (values, mapping = r => r) => {
+  const root = vlDefault(vlApi.data({ values, name: 'source' }), vlApi);
+  return {
+    vl: mapping(root, vlApi),
+    __EllxMeta__: { component: Plot }
+  };
+}
+
+export { vlApi }
+
 class Plot {
   constructor(props) {
     this.update(props);
@@ -69,26 +92,3 @@ class Plot {
     if (view && 'function' === typeof view.finalize) view.finalize();
   }
 }
-
-export const vlDefault = (root, vl) => {
-  const { data: { values } } = root.toJSON();
-  const keys = Object.keys(values[0]);
-
-  return root.mark({ type: 'point', filled: true })
-    .encode(
-      vl.x().fieldQ(keys[0]),
-      vl.y().fieldQ(keys[1]),
-    )
-    .width(400)
-    .height(200)
-}
-
-export const plot = (values, mapping = r => r) => {
-  const root = vlDefault(vlApi.data({ values, name: 'source' }), vlApi);
-  return {
-    vl: mapping(root, vlApi),
-    __EllxMeta__: { component: Plot }
-  };
-}
-
-export { vlApi }

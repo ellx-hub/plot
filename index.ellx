@@ -86,7 +86,7 @@ layout:
         "vertical": true,
         "secondary": true,
         "labelsTop": true,
-        "height": 13,
+        "height": 30,
         "width": 6
       }
     }
